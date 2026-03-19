@@ -1,0 +1,19 @@
+window {
+    background-color: #1e1e2e;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+#entry {
+    padding: 10px;
+    border-radius: 8px;
+    transition: all 0.1s ease-in-out;
+}
+
+#entry:selected {
+    background-color: #3584e4; /* macOS Blue */
+}
+
+#outer-box {
+    margin: 10px;
+}

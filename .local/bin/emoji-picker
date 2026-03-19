@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+EMOJI_FILE="$HOME/.config/wofi/emojis.txt"
+
+# Ensure the list is formatted cleanly on one line per entry
+formatted_list=$(awk '{
+    emoji = $NF; 
+    $NF = ""; 
+    name = $0;
+    # We use a smaller size (24pt) to ensure it fits in the row height
+    printf "<span size=\"24000\">%s</span> <span letter_spacing=\"-10000\" alpha=\"1\">%s</span>\n", emoji, name
+}' "$EMOJI_FILE")
+
+selection=$(echo "$formatted_list" | wofi --dmenu --allow-markup --conf ~/.config/wofi/emoji.config --style ~/.config/wofi/emoji.style.css)
+
+if [ -n "$selection" ]; then
+    result=$(echo "$selection" | sed -e 's/<[^>]*>//g' | awk '{print $1}')
+    echo -n "$result" | wl-copy
+fi
+
+# Release the lock before exiting                                   
+flock -u 9

@@ -1,0 +1,16 @@
+#!/usr/bin/env bash
+
+DOTFILES="$HOME/hyprland-dotfiles"
+LIST="$DOTFILES/dotfile-paths"
+
+for item in "$@"; do
+    abs="$(realpath "$item")"
+    rel="${abs#$HOME/}"
+
+    sed -i "\|^$rel$|d" "$LIST"
+
+    rm -rf "$DOTFILES/$rel"
+
+    notify-send "Hyprland Dotfiles" "\n Removed: $rel\n"
+done
+

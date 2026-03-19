@@ -1,0 +1,5 @@
+# Terminal Assistant Configuration
+
+model = "qwen2.5-coder:7b"
+history_size = 1
+ollama_url = "http://localhost:11434"

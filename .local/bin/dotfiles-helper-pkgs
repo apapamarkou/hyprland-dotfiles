@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+OUTDIR="$HOME/hyprland-dotfiles"
+
+mkdir -p "$OUTDIR"
+
+echo "Exporting repo packages..."
+pacman -Qqen | sort > "$OUTDIR/repo-pkgs.list"
+
+echo "Exporting AUR packages..."
+pacman -Qqem | sort > "$OUTDIR/aur-pkgs.list"
+
+echo "Done."
+echo
+echo "Saved:"
+echo "$OUTDIR/repo-pkgs.list"
+echo "$OUTDIR/aur-pkgs.list"

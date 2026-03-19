@@ -1,0 +1,20 @@
+show=drun
+width=500
+height=500
+lines=10
+
+prompt=Search installed applications
+normal_window=false
+location=top
+orientation=vertical
+
+sort_order=default
+
+gtk_dark=true
+
+single_click=true
+
+use_search_box=true
+
+allow_images=true
+image_size=38

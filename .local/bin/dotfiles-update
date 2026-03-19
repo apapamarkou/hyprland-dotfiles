@@ -1,0 +1,17 @@
+#!/usr/bin/env bash
+
+DOTFILES="$HOME/hyprland-dotfiles"
+LIST="$DOTFILES/dotfile-paths"
+
+while read -r rel; do
+    src="$HOME/$rel"
+    dst="$DOTFILES/$rel"
+
+    if [ -e "$src" ]; then
+        mkdir -p "$(dirname "$dst")"
+        rsync -a --delete "$src" "$dst"
+        echo "Synced: $rel"
+    else
+        echo "Missing: $rel"
+    fi
+done < "$LIST"

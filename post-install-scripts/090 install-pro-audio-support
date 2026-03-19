@@ -1,0 +1,58 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+clear
+echo "Pro-Audio Support Installer"
+echo "---------------------------"
+echo
+echo "This script will configure your system for pro-audio usage."
+echo
+
+# Confirmation
+read -p "Do you want to proceed? (Y/n) " -n 1
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]
+then
+    exit 1
+fi
+
+# add user to audio group
+sudo usermod -a -G audio $USER
+
+# Define the lines to be added
+line1="@audio           -      rtprio           95"
+line2="@audio           -      memlock          unlimited"
+line3="@audio           -      nice             10"
+
+# Define the target file
+file="/etc/security/limits.conf"
+
+# Check if the lines exist in the file
+if grep -qF "$line1" "$file" || grep -qF "$line2" "$file" || grep -qF "$line3" "$file"; then
+    echo "Lines found. Replacing them..."
+
+    # Remove existing lines that match the patterns
+    sudo sed -i "/^@audio.*rtprio/d" "$file"
+    sudo sed -i "/^@audio.*memlock/d" "$file"
+    sudo sed -i "/^@audio.*nice/d" "$file"
+    
+    # Add the new lines before the "# End of file" line
+    sudo sed -i "/# End of file/i $line1\n$line2\n$line3" "$file"
+    echo "Lines replaced successfully."
+else
+    echo "Lines not found in $file. Adding them..."
+    
+    # Add the new lines before the "# End of file" line
+    sudo sed -i "/# End of file/i $line1\n$line2\n$line3" "$file"
+    echo "Lines added successfully."
+fi

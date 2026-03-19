@@ -1,0 +1,3 @@
+#!/bin/bash
+
+flock -n /tmp/wallpaper_picker.lock -c wofi

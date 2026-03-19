@@ -1,0 +1,47 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+clear
+
+echo "Creating update-grub script..."
+echo "--------------------------------"
+echo
+echo "This script will create a debian-like script named 'update-grub' in the /usr/sbin directory for easy update the grub boot loader."
+echo
+
+# Confirmation
+read -p "Do you want this feat? (Y/n) " -n 1
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]
+then
+    exit 1
+fi
+
+# Define the target file
+target_file="/usr/sbin/update-grub"
+
+# Create the file with the desired content
+sudo tee "$target_file" > /dev/null << 'EOF'
+#!/bin/sh
+set -e
+exec grub-mkconfig -o /boot/grub/grub.cfg "$@"
+EOF
+
+# Make the script executable
+sudo chmod +x "$target_file"
+
+sudo chown root:root /usr/sbin/update-grub
+sudo chmod 755 /usr/sbin/update-grub
+
+echo "$target_file created and made executable."
+sleep 2

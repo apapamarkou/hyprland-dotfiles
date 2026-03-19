@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+
+DOTFILES="$HOME/hyprland-dotfiles"
+LIST="$DOTFILES/dotfile-paths"
+
+for item in "$@"; do
+    abs="$(realpath "$item")"
+    rel="${abs#$HOME/}"
+
+    # avoid duplicates
+    grep -qxF "$rel" "$LIST" 2>/dev/null && {
+        notify-send "Hyprland Dotfiles" "\n Already tracked: $rel\n"
+        continue
+    }
+
+    target="$DOTFILES/$rel"
+    mkdir -p "$(dirname "$target")"
+
+    echo "$rel" >> "$LIST"
+
+    cp -a "$abs" "$target"
+
+    notify-send "Hyprland Dotfiles" "\n Added: $rel\n"
+done

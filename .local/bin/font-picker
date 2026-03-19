@@ -1,0 +1,63 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+# If it fails (-n for non-blocking), exit immediately.
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+# 1. Get a unique list of font families
+fonts=$(fc-list : family | cut -d, -f1 | sort -u)
+
+# 2. Format the list with Pango markup for a preview
+formatted_list=$(echo "$fonts" | awk '{
+    # Escaping quotes for Pango
+    printf "%s <span font=\"%s\" size=\"large\"> Sample Text</span>\n", $0, $0
+}')
+
+# 3. Launch Wofi
+selection=$(echo "$formatted_list" | wofi --dmenu \
+    --allow-markup \
+    --prompt "Pick a font for your config..." \
+    --conf ~/.config/wofi/font.config \
+    --style ~/.config/wofi/font.style.css)
+
+# 4. Clean and Format for Config Files
+if [ -n "$selection" ]; then
+    # 1. Strip HTML tags
+    # 2. Remove the " Sample Text" preview string
+    # 3. Trim trailing/leading whitespace
+    clean_name=$(echo "$selection" | sed -e 's/<[^>]*>//g' -e 's/ Sample Text//' | xargs)
+    
+    # 4. Create the final config string: "Font Name Regular 12"
+    final_string="$clean_name Regular 12"
+    
+    # Copy to clipboard
+    echo -n "$final_string" | wl-copy
+    
+    # Visual Confirmation
+    notify-send "Font Config Copied" "'$final_string' is ready to paste."
+fi
+
+
+# Release the lock before exiting                                   
+flock -u 9

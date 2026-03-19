@@ -1,0 +1,25 @@
+window {
+    border: 2px solid #f38ba8; /* Reddish border for power menu */
+    border-radius: 15px;
+}
+
+#input {
+    margin: 10px;
+    border-radius: 10px;
+    border: none;
+    color: #cdd6f4;
+}
+
+#inner-box {
+    margin: 15px;
+}
+
+#entry {
+    padding: 10px;
+    border-radius: 10px;
+}
+
+
+#text:selected {
+    font-weight: bold;
+}

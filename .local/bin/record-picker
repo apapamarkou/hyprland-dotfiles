@@ -1,0 +1,91 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+# If it fails (-n for non-blocking), exit immediately.
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+# 1. Automatic Toggle: If already recording, stop it immediately and exit
+if pgrep -x "wf-recorder" > /dev/null; then
+    pkill -INT wf-recorder
+    notify-send "Recording" "Stopped and Saved" -i video-display
+    exit 0
+fi
+
+# 2. Step One: Select Capture Mode (Including STOP)
+# We put Stop at the top so it's the easiest to hit
+options="󰹑  Full Screen\n󱣱  Active Window\n󰆟  Selected Area"
+
+mode=$(echo -e "$options" | wofi --dmenu \
+    --prompt "Recorder" \
+    --conf ~/.config/wofi/record.config \
+    --style ~/.config/wofi/record.style.css)
+
+[ -z "$mode" ] && exit 1
+
+# 3. Handle the Manual Stop choice
+if [[ "$mode" == *"STOP"* ]]; then
+    # This part only runs if wf-recorder was somehow orphaned 
+    # or if you just want to be sure it's off.
+    pkill -INT wf-recorder
+    exit 0
+fi
+
+# 4. Step Two: Select Audio
+audio_options="󰕾  With Sound\n󰖁  Without Sound"
+audio_choice=$(echo -e "$audio_options" | wofi --dmenu \
+    --prompt "Audio Settings" \
+    --conf ~/.config/wofi/record.config \
+    --style ~/.config/wofi/record.style.css)
+
+[ -z "$audio_choice" ] && exit 1
+
+# 5. Prepare Geometry
+case "$mode" in
+    *Full*)
+        GEOM="" 
+        ;;
+    *Window*)
+        GEOM=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+        ;;
+    *Area*)
+        GEOM=$(slurp -b '#00000000' -c '#ff5555ff' -s '#ff555533')
+        ;;
+esac
+
+[ -z "$GEOM" ] && [[ "$mode" == *"Area"* ]] && exit 1
+
+# 6. Start Recording
+DIR="$HOME/Videos/Recordings"
+mkdir -p "$DIR"
+FILE="$DIR/rec_$(date +%Y%m%d_%H%M%S).mp4"
+
+AUDIO_FLAG=""
+[[ "$audio_choice" == *"With Sound"* ]] && AUDIO_FLAG="--audio"
+
+sleep 0.5
+notify-send "Recording" "Started..." -t 1000
+wf-recorder $AUDIO_FLAG ${GEOM:+-g "$GEOM"} -f "$FILE" &
+
+# Release the lock before exiting                                   
+flock -u 9

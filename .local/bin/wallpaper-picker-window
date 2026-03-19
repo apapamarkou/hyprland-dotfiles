@@ -1,0 +1,33 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+# If it fails (-n for non-blocking), exit immediately.
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+kitty --title "Wallpaper Picker" \
+    --class wallpaper-picker \
+    -o remember_window_size=no \
+    -o initial_window_width=68c \
+    -o initial_window_height=35c \
+    /home/user/.local/bin/wallpaper-picker

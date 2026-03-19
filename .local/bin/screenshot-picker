@@ -1,0 +1,89 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+# If it fails (-n for non-blocking), exit immediately.
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+# Define the options with emojis for that clean look
+options="󰹑  Capture Entire Screen\n󰆟  Select Area\n󱣱  Capture Active Window\n󰄄  Delayed (5s)"
+
+# Launch Wofi
+choice=$(echo -e "$options" | wofi --dmenu \
+    --prompt "Screenshot..." \
+    --conf ~/.config/wofi/screenshot.config \
+    --style ~/.config/wofi/screenshot.style.css)
+
+# File path and timestamp
+DIR="$HOME/Pictures/Screenshots"
+mkdir -p "$DIR"
+FILE="$DIR/screenshot_$(date +%Y%m%d_%H%M%S).png"
+
+case "$choice" in
+    *Entire*)
+        sleep 0.5 && grim "$FILE"
+        ;;
+    *Area*)
+		# 1. Capture the area coordinates first
+		geometry=$(slurp -b '#00000000' -c '#89b4faff' -s '#89b4fa33')
+
+		# 2. Check if the user didn't cancel (Esc)
+		if [ -n "$geometry" ]; then
+			# 3. Wait 0.2 seconds for the blue box to vanish
+			sleep 0.2
+			# 4. Take the shot
+			grim -g "$geometry" "$FILE"
+		fi
+        ;;
+    *Window*)
+        # 1. Get coordinates of the focused window from Hyprland
+        window_box=$(hyprctl activewindow -j | jq -r '"\(.at[0]),\(.at[1]) \(.size[0])x\(.size[1])"')
+        
+        # 2. Check if a window is actually focused
+        if [ "$window_box" != "0,0 0x0" ]; then
+            sleep 0.2 # Small delay to let the Wofi menu disappear
+            grim -g "$window_box" "$FILE"
+        else
+            notify-send "Error" "No active window found"
+            exit 1
+        fi
+        ;;
+    *Delayed*)
+        notify-send "Screenshot" "Taking in 5 seconds..." -t 2000
+        sleep 5 && grim "$FILE"
+        ;;
+    *)
+        exit 1
+        ;;
+esac
+
+# If a file was created, copy to clipboard and notify
+if [ -f "$FILE" ]; then
+    wl-copy < "$FILE"
+    notify-send "Screenshot Captured" "Saved to Pictures and copied to clipboard." -i "$FILE"
+    # Play a camera shutter sound if you have one
+    # paplay /usr/share/sounds/freedesktop/stereo/camera-shutter.oga
+fi
+
+# Release the lock before exiting                                   
+flock -u 9

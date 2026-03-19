@@ -1,0 +1,117 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+WALL_DIRS=(
+    "$HOME/Pictures/Wallpapers"
+    "/usr/share/backgrounds"
+    "/usr/share/wallpapers"
+)
+
+CONF="$HOME/.config/hypr/wallpapers.conf"
+CACHE="$HOME/.cache/current_wallpaper"
+
+TRANSITION="fade"
+DURATION="1"
+
+mkdir -p "$(dirname "$CONF")"
+mkdir -p "$(dirname "$CACHE")"
+
+# --- get monitor list ---
+get_monitors() {
+    hyprctl monitors -j | jq -r '.[].name'
+}
+
+select_monitor() {
+    local monitors
+    monitors=$(get_monitors)
+
+    echo -e "All\n$monitors" \
+        | fzf --layout=reverse --prompt="Monitor > "
+}
+
+# --- wallpaper search ---
+find_wallpapers() {
+    find "${WALL_DIRS[@]}" \
+        -type f \( -iname "*.jpg" -o -iname "*.jpeg" -o -iname "*.png" -o -iname "*.webp" \) 2>/dev/null
+}
+
+# --- kitty image preview ---
+preview_cmd() {
+    echo 'chafa --symbols=block --fill=block --size=60x35 {}'
+}
+
+# --- main picker ---
+pick_wallpaper() {
+    find_wallpapers | \
+    fzf \
+        --layout=reverse \
+        --border \
+        --preview "$(preview_cmd)" \
+        --preview-window=bottom:16 \
+        --prompt="Wallpaper > "
+}
+
+# --- save config ---
+save_wallpaper() {
+    local monitor="$1"
+    local file="$2"
+
+    sed -i "/^$monitor=/d" "$CONF" 2>/dev/null
+    echo "$monitor=$file" >> "$CONF"
+    echo "$file" > "$CACHE"
+}
+
+# --- apply wallpaper ---
+apply_wallpaper() {
+    local monitor="$1"
+    local file="$2"
+
+    if [ "$monitor" = "All" ]; then
+        while read -r m; do
+            swww img "$file" \
+                --outputs "$m" \
+                --transition-type $TRANSITION \
+                --transition-duration $DURATION
+        done < <(get_monitors)
+    else
+        swww img "$file" \
+            --outputs "$monitor" \
+            --transition-type $TRANSITION \
+            --transition-duration $DURATION
+    fi
+}
+
+# --- restore mode ---
+if [ "$1" = "--restore" ]; then
+    [ ! -f "$CONF" ] && exit 0
+    while IFS='=' read -r monitor file; do
+        [ -f "$file" ] || continue
+        apply_wallpaper "$monitor" "$file"
+		sleep 2
+    done < "$CONF"
+    exit 0
+fi
+
+while true; do
+    WALL=$(pick_wallpaper)
+    [ -z "$WALL" ] && exit 0
+
+    MON=$(select_monitor)
+    [ -z "$MON" ] && exit 0
+
+    save_wallpaper "$MON" "$WALL"
+    apply_wallpaper "$MON" "$WALL"
+
+    # wait for transition to finish
+    sleep 1
+done

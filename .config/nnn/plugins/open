@@ -1,0 +1,12 @@
+#!/bin/bash
+file="$1"
+mtype=$(xdg-mime query filetype "$file")
+
+case "$mtype" in
+    text/*|application/x-shellscript)
+        nvim "$file"
+        ;;
+    *)
+        xdg-open "$file"
+        ;;
+esac

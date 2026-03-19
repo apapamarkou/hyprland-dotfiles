@@ -1,0 +1,65 @@
+#!/usr/bin/env bash
+
+set -e
+
+REPO_URL="$1"
+DOTFILES="$HOME/hyprland-dotfiles"
+
+if [ -z "$REPO_URL" ]; then
+    echo "Usage: install <repo-url>"
+    exit 1
+fi
+
+echo "📥 Cloning..."
+git clone "$REPO_URL" "$DOTFILES"
+
+cd "$DOTFILES"
+
+# install yay
+if ! command -v yay &>/dev/null; then
+    echo "⚙️ Installing yay..."
+    sudo pacman -S --needed git base-devel
+
+    git clone https://aur.archlinux.org/yay.git /tmp/yay
+    cd /tmp/yay
+    makepkg -si --noconfirm
+fi
+
+cd "$DOTFILES"
+
+echo "📦 Installing repo packages..."
+sudo pacman -S --needed - < repo-pkgs.list
+
+echo "📦 Installing AUR packages..."
+yay -S --needed - < aur-pkgs.list
+
+echo "⚙️ Running post-install scripts..."
+for script in post-install-scripts/*; do
+    [ -x "$script" ] && "$script"
+done
+
+echo "📁 Installing dotfiles..."
+
+while read -r rel; do
+    [ -z "$rel" ] && continue
+
+    src="$DOTFILES/$rel"
+    dst="$HOME/$rel"
+
+    if [ ! -e "$src" ]; then
+        echo -e "\e[31m✖ Missing in repo: $rel\e[0m"
+        continue
+    fi
+
+    if [ -e "$dst" ]; then
+        echo -e "\e[33m⚠ Replacing $dst\e[0m"
+        rm -rf "$dst"
+    fi
+
+    mkdir -p "$(dirname "$dst")"
+    cp -a "$src" "$dst"
+
+    echo -e "\e[32m✔ Installed $rel\e[0m"
+done < "$DOTFILES/dotfile-paths"
+
+echo "✅ Done!"

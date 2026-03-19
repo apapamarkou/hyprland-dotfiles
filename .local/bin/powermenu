@@ -1,0 +1,46 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+SCRIPT_TITLE=$(basename "$0")
+
+LOCKFILE="/tmp/$SCRIPT_TITLE.lock"
+
+# Open the lock file for writing on file descriptor 9
+exec 9>"$LOCKFILE"
+
+# Try to acquire an exclusive lock. 
+# If it fails (-n for non-blocking), exit immediately.
+if ! flock -n 9; then
+    echo "Another instance of $SCRIPT_TITLE is already running."
+    exit 1
+fi
+
+entries="󰐥 - Shutdown\n󰜉 - Reboot\n󰤄 - Suspend\n󰗽 - Logout\n󰷛 - Lock"
+
+selected=$(echo -e "$entries" | wofi --dmenu \
+  --conf ~/.config/wofi/power.config \
+  --style ~/.config/wofi/power.menu.css)
+
+case "$selected" in
+  *Shutdown*)
+    systemctl poweroff ;;
+  *Reboot*)
+    systemctl reboot ;;
+  *Suspend*)
+    systemctl suspend ;;
+  *Logout*)
+    loginctl terminate-user "$USER" ;;
+  *Lock*)
+    hyprlock ;;
+esac
+

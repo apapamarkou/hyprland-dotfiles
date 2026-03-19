@@ -1,0 +1,62 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+# This script installs and configures greetd with tuigreet
+clear
+
+echo "Greetd TUI Installer"
+echo "---------------------"
+echo
+echo "This script will install and configure greetd with tuigreet as TUI greeter."
+echo "It will disable all possible display managers and enable greetd."
+echo
+
+# Confirmation. Default answare is [y]
+read -p "Do you want to install TUI Greet ? (Y/n) " confirm
+
+if [[ $confirm =~ ^[Nn]$ ]]; then
+    echo "Installation skipped."
+    sleep 2
+    exit 1
+fi
+
+# Install greetd and tuigreet
+sudo pacman -S --needed --noconfirm greetd-tuigreet
+
+
+# Disable all possible display managers
+echo "Disabling all possible display managers..."
+sudo systemctl disable gdm.service
+sudo systemctl disable lightdm.service
+sudo systemctl disable sddm.service
+sudo systemctl disable lxdm.service
+
+# Createding config for greetd
+echo "Creating config file /etc/greetd/config.toml..."
+sudo tee /etc/greetd/config.toml > /dev/null << EOF
+[terminal]
+vt = 1
+
+[default_session]
+command = "/usr/bin/tuigreet --remember"
+user = "greeter"
+EOF
+
+# Enable greetd
+echo "Enabling greetd..."
+sudo systemctl enable greetd.service
+
+
+echo "Greetd is enabled. It will be activated at next boot."
+sleep 2
+

@@ -1,0 +1,29 @@
+window {
+    background-color: #1e1e2e;
+    border: 2px solid #f9e2af; /* Yellowish border for emojis */
+    border-radius: 12px;
+}
+
+#input {
+    margin: 10px;
+    border-radius: 8px;
+    background-color: #313244;
+    color: #cdd6f4;
+}
+
+#entry {
+    padding: 12px;
+    border-radius: 8px;
+    font-size: 18px;
+}
+
+#entry:selected {
+    background-color: #f9e2af;
+	justify-content: start;
+}
+
+#entry:hover {
+    background-color: rgba(255, 255, 255, 0.15); /* Soft white glow */
+    outline: 2px solid rgba(255, 255, 255, 0.3);
+    cursor: pointer;
+}

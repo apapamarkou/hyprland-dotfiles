@@ -1,0 +1,71 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+sudo pacman -S --needed --noconfirm fzf
+clear
+
+echo "Locale Selector"
+echo "----------------"
+echo
+echo "This script will help you select and configure your locale."
+echo "Your current locale is: $(locale | grep LC_CTYPE= | cut -d'=' -f2)"
+echo
+
+# Confirm before proceeding
+read -p "Do you want to change it? (Y/n) " -n 1 -r
+echo
+
+if [[ $REPLY =~ ^[Nn]$ ]]
+then
+    exit 1
+fi
+
+# Select locale from /etc/locale.gen using fzf
+selected_locale=$(grep "^.*UTF-8" /etc/locale.gen | sed 's/^#//' | fzf --prompt="Select locale: " --height=100% --layout=reverse)
+
+if [ -z "$selected_locale" ]; then
+    echo "No locale selected. Exiting."
+    exit 1
+fi
+
+# Extract locale code (e.g., "el_GR.UTF-8" from "el_GR.UTF-8 UTF-8")
+locale_code=$(echo "$selected_locale" | awk '{print $1}')
+pattern="#$selected_locale"
+
+# Uncomment the selected locale in /etc/locale.gen
+sudo sed -i "/^${pattern}/s/^#//" /etc/locale.gen
+echo "Uncommented: $selected_locale"
+
+sudo locale-gen
+
+# Create /etc/locale.conf with selected locale
+sudo tee /etc/locale.conf > /dev/null << EOF
+LANG=en_US.UTF-8
+LC_CTYPE="$locale_code"
+LC_NUMERIC="$locale_code"
+LC_TIME="$locale_code"
+LC_COLLATE=C
+LC_MONETARY="$locale_code"
+LC_MESSAGES="en_US.UTF-8"
+LC_PAPER="$locale_code"
+LC_NAME="$locale_code"
+LC_ADDRESS="$locale_code"
+LC_TELEPHONE="$locale_code"
+LC_MEASUREMENT="$locale_code"
+LC_IDENTIFICATION="$locale_code"
+LC_ALL=
+EOF
+
+echo "/etc/locale.conf updated with locale: $locale_code"
+sleep 2
+
