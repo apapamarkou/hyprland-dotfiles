@@ -40,3 +40,10 @@ Pictures/Wallpapers
 .local/share/nwg-look
 .config/mimeapps.list
 notes.txt
+.local/bin/mycalendar
+.local/bin/soundmixer
+.local/bin/waybar-drives
+.local/bin/weather
+.local/bin/languages
+.local/bin/snapshots
+.local/bin/system-monitor

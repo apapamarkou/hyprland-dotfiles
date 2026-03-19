@@ -354,7 +354,7 @@ main() {
         local selection=$(format_snapshot_list | \
             fzf --ansi \
                 --reverse \
-                --height=20 \
+                --height=100% \
                 --border=rounded \
                 --prompt="Select Snapshot (ESC to exit) > " \
                 --header="$(echo -e "${C_CYAN}${C_BOLD}System Snapshot Manager v${VERSION}${C_RESET}\n${C_DIM}Use ↑↓ to navigate | Enter to select | ESC to exit | Ctrl+N for new snapshot${C_RESET}")" \

@@ -20,8 +20,8 @@
 				"mpris",
 				"custom/weather",
         "idle_inhibitor",
-        "custom/drives",
         "pulseaudio",
+        "custom/drives",
         "cpu",
         "memory",
         "temperature",
@@ -129,10 +129,14 @@
 		},
     "cpu": {
         "format": "{usage}% <big></big>",
-        "tooltip": false
+        "tooltip": false,
+        "on-click": "system-monitor",
+		    "on-click-right": "system-monitor"
     },
     "memory": {
-        "format": "{}% <big></big>"
+        "format": "{}% <big></big>",
+        "on-click": "system-monitor",
+		    "on-click-right": "system-monitor"
     },
     "temperature": {
         // "thermal-zone": 2,
@@ -231,14 +235,14 @@
     	"tooltip": true,
     	"format": "{icon}",
     	"format-icons": {
-    	  "notification": "   <span foreground='red'><sup> </sup></span>",
-    	  "none": "    ",
-    	  "dnd-notification": "   <span foreground='red'><sup> </sup></span>",
-    	  "dnd-none": "    ",
-    	  "inhibited-notification": "   <span foreground='red'><sup> </sup></span>",
-    	  "inhibited-none": "    ",
-    	  "dnd-inhibited-notification": "   <span foreground='red'><sup> </sup></span>",
-    	  "dnd-inhibited-none": "    "
+    	  "notification": "  <span foreground='red'><sup> </sup></span>",
+    	  "none": "  ",
+    	  "dnd-notification": "  <span foreground='red'><sup> </sup></span>",
+    	  "dnd-none": "  ",
+    	  "inhibited-notification": "  <span foreground='red'><sup> </sup></span>",
+    	  "inhibited-none": "  ",
+    	  "dnd-inhibited-notification": "  <span foreground='red'><sup> </sup></span>",
+    	  "dnd-inhibited-none": "   "
     	},
     	"return-type": "json",
     	"exec-if": "which swaync-client",
@@ -250,7 +254,7 @@
   	},
   	"custom/weather": {
 		  "exec": "weather -m",
-		  "format": "  {}  ",
+		  "format": "{}",
 		  "interval": 3600,
 		  "on-click": "weather -t",
 		  "tooltip": true,

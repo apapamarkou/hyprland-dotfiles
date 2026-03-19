@@ -25,9 +25,9 @@ if ! flock -n 9; then
     exit 1
 fi
 
-kitty --title "Wallpaper Picker" \
-    --class wallpaper-picker \
+kitty --title "Calendar" \
+    --class floating-calendar \
     -o remember_window_size=no \
-    -o initial_window_width=68c \
-    -o initial_window_height=35c \
-    wallpaper-picker
+    -o initial_window_width=110c \
+    -o initial_window_height=32c \
+    calcurse

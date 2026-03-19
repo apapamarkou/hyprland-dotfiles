@@ -28,7 +28,13 @@ showHelp() {
 }
 
 openTerminal() {
-    nohup flock -n $LOCK_DIR/$SCRIPT_NAME.lock terminal --columns=50 --lines=15 --title="$FLOATING_PREFIX $TITLE" $SCRIPT_NAME
+    setsid flock -n /tmp/$SCRIPT_NAME.lock kitty \
+    	--title "$TITLE" \
+		  --class languages \
+		  -o remember_window_size=no \
+		  -o initial_window_width=160c \
+		  -o initial_window_height=40c \
+		  $SCRIPT_NAME > /dev/null 2>&1 &
 }
 
 displayMenu() {
