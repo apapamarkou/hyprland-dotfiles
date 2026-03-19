@@ -1,0 +1,59 @@
+#!/bin/bash
+
+# __   _____  _   _ _   _ _____  __
+# \ \ / / _ \| | | | \ | |_ _\ \/ /
+#  \ V / | | | | | |  \| || | \  /
+#   | || |_| | |_| | |\  || | /  \
+#   |_| \___/ \___/|_| \_|___/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+clear
+echo "This script will enable a system service set the numlock on, on startup."
+echo
+
+# Confirmation
+read -p "Do you want this feature? (Y/n) " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Nn]$ ]]
+then
+    exit 1
+fi
+
+set -e
+
+sudo echo "Creating numlock script..."
+
+cat << 'EOF' | sudo tee /usr/local/bin/enable-numlock.sh > /dev/null
+#!/bin/sh
+
+for tty in /dev/tty{1..12}; do
+    [ -e "$tty" ] && /usr/bin/setleds -D +num < "$tty"
+done
+EOF
+
+sudo chmod +x /usr/local/bin/enable-numlock.sh
+
+echo "Creating systemd service..."
+
+cat << 'EOF' | sudo tee /etc/systemd/system/numlock.service > /dev/null
+[Unit]
+Description=Enable NumLock at boot
+
+[Service]
+Type=oneshot
+ExecStart=/usr/local/bin/enable-numlock.sh
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+echo "Enabling service..."
+
+sudo systemctl enable numlock.service
+
+echo "Done."
+sleep 2

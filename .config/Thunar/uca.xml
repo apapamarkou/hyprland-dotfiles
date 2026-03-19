@@ -28,4 +28,20 @@
 	<text-files/>
 	<video-files/>
 </action>
+<action>
+	<icon>package-remove</icon>
+	<name>Remove from dotfiles</name>
+	<submenu>Dotfiles</submenu>
+	<unique-id>1773851163807495-1</unique-id>
+	<command>dotfiles-remove %F</command>
+	<description>Remove from dotfiles</description>
+	<range>*</range>
+	<patterns>*</patterns>
+	<directories/>
+	<audio-files/>
+	<image-files/>
+	<other-files/>
+	<text-files/>
+	<video-files/>
+</action>
 </actions>

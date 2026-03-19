@@ -6,6 +6,7 @@
     "spacing": 0,
     
     "modules-left": [
+    		"custom/launcher",
         "hyprland/workspaces",
         "hyprland/window",
         "sway/scratchpad",
@@ -16,8 +17,10 @@
     ],
 
     "modules-right": [
-		"mpris",
+				"mpris",
+				"custom/weather",
         "idle_inhibitor",
+        "custom/drives",
         "pulseaudio",
         "cpu",
         "memory",
@@ -29,7 +32,23 @@
         "battery#bat2",
         "clock",
         "tray",
+        "custom/notification",
+        "custom/power"
     ],
+  "custom/launcher": {
+    "exec": "echo '󰬠'",
+    "on-click": "app-launcher",
+    "on-click-right": "app-launcher",
+    "tooltip": true,
+    "tooltip-format": "\n    left click: Applications \n\n    right click: Applications \n"
+  },
+  "custom/power": {
+    "exec": "echo ' ⏻ '",
+    "on-click": "powermenu",
+    "on-click-right": "powermenu",
+    "tooltip": true,
+    "tooltip-format": "\n    left click: Power menu \n\n    right click: Power menu \n"
+  },
 	"mpris": {
 		"format": "{player_icon} {title} - {artist}",
 		"format-paused": " {title}",
@@ -71,8 +90,7 @@
         "format": "{short}",
         "min-length": 4,
         "max-length": 4,
-        "on-click": "yckeyboard -t",
-        "on-click-right": "yclocalization -t"
+        "on-click": "hyprctl switchxkblayout current next"
       },
 
     "idle_inhibitor": {
@@ -83,18 +101,32 @@
         }
     },
     "tray": {
-        // "icon-size": 21,
-        "spacing": 10,
+        "icon-size": 21,
+        "spacing": 6,
         // "icons": {
         //   "blueman": "bluetooth",
         //   "TelegramDesktop": "$HOME/.local/share/icons/hicolor/16x16/apps/telegram.png"
         // }
     },
     "clock": {
-        // "timezone": "America/New_York",
-        "tooltip-format": "<big>{:%Y %B %d}</big>\n<tt><small>{calendar}</small></tt>",
-        "format-alt": "{:%Y %m %d}"
-    },
+			"format": "{:%H:%M}  ",
+			"tooltip-format": "\n {:%A %d %B %Y (%R)} \n\n     left click: open calendar \n\n    right click: view toggle mode (year/month) \n\n<tt>{calendar}</tt> \n",
+			"on-click": "mycalendar",
+			"on-click-right": "mode",
+			"calendar": {
+				"mode": "year",
+				"mode-mon-col": 3,
+				"weeks-pos": "right",
+				"on-scroll": 1,
+				"format": {
+				  "months": "<span color='#ffead3'><b>{}</b></span>",
+				  "days": "<span color='#ecc6d9'><b>{}</b></span>",
+				  "weeks": "<span color='#99ffdd'><b>W{}</b></span>",
+				  "weekdays": "<span color='#ffcc66'><b>{}</b></span>",
+				  "today": "<span color='#ff6699'><b><u>{}</u></b></span>"
+				}
+			}
+		},
     "cpu": {
         "format": "{usage}% <big></big>",
         "tooltip": false
@@ -134,7 +166,7 @@
         "bat": "BAT2"
     },
     "power-profiles-daemon": {
-      "format": "{icon}",
+      "format": "{icon} ",
       "tooltip-format": "Power profile: {profile}\nDriver: {driver}",
       "tooltip": true,
       "format-icons": {
@@ -170,7 +202,8 @@
             "car": "",
             "default": ["", "", ""]
         },
-        "on-click": "pavucontrol"
+        "on-click": "pavucontrol",
+        "on-click-right": "soundmixer"
     },
     "custom/media": {
         "format": "{icon} {text}",
@@ -184,17 +217,44 @@
         "exec": "$HOME/.config/waybar/mediaplayer.py 2> /dev/null" // Script in resources folder
         // "exec": "$HOME/.config/waybar/mediaplayer.py --player spotify 2> /dev/null" // Filter player based on name
     },
-    
-    "custom/power": {
-        "format" : "⏻ ",
-		"tooltip": false,
-		"menu": "on-click",
-		"menu-file": "$HOME/.config/waybar/power_menu.xml", // Menu file in resources folder
-		"menu-actions": {
-			"shutdown": "shutdown",
-			"reboot": "reboot",
-			"suspend": "systemctl suspend",
-			"hibernate": "systemctl hibernate"
-		}
-    }
+    "custom/drives": {
+		  "module": "custom/script",
+		  "return-type": "json",
+		  "exec": "waybar-drives",
+		  "interval": 30,
+		  "format": "{text}",
+		  "tooltip": true,
+		  "on-click": "gtk-launch nnn ~/",
+		  "on-click-right": "kitty dua i"
+		},
+    "custom/notification": {
+    	"tooltip": true,
+    	"format": "{icon}",
+    	"format-icons": {
+    	  "notification": "   <span foreground='red'><sup> </sup></span>",
+    	  "none": "    ",
+    	  "dnd-notification": "   <span foreground='red'><sup> </sup></span>",
+    	  "dnd-none": "    ",
+    	  "inhibited-notification": "   <span foreground='red'><sup> </sup></span>",
+    	  "inhibited-none": "    ",
+    	  "dnd-inhibited-notification": "   <span foreground='red'><sup> </sup></span>",
+    	  "dnd-inhibited-none": "    "
+    	},
+    	"return-type": "json",
+    	"exec-if": "which swaync-client",
+    	"exec": "swaync-client -swb",
+    	"on-click": "swaync-client -t -sw",
+    	"on-click-right": "swaync-client -d -sw",
+    	"tooltip-format": "\n    left click: notifications panel \n\n    right click: toggle notifications on/off \n",
+   	 "escape": true
+  	},
+  	"custom/weather": {
+		  "exec": "weather -m",
+		  "format": "  {}  ",
+		  "interval": 3600,
+		  "on-click": "weather -t",
+		  "tooltip": true,
+		  "tooltip-format": "\n    left click: weather viewer \n"
+    },
+  }
 }

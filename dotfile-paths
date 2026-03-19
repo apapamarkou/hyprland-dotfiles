@@ -16,7 +16,6 @@
 .bashrc
 .gtkrc-2.0
 .profile
-notes.txt
 Pictures/Wallpapers
 .local/bin/app-launcher
 .local/bin/chat-assistant
@@ -40,3 +39,4 @@ Pictures/Wallpapers
 .local/share/shell
 .local/share/nwg-look
 .config/mimeapps.list
+notes.txt

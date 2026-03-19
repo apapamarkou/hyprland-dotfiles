@@ -5,7 +5,7 @@ lines=10
 
 prompt=Search installed applications
 normal_window=false
-location=top
+location=top_left
 orientation=vertical
 
 sort_order=default
