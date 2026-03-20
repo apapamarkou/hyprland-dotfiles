@@ -1,15 +1,21 @@
 #!/bin/bash
 
-# ╔═══════════════════════════════════════════════════════════════════════════╗
-# ║                      SYSTEM SNAPSHOT MANAGER (SSM)                        ║
-# ╚═══════════════════════════════════════════════════════════════════════════╝
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
 #
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
 # Description: Interactive snapshot management tool using fzf
 # Dependencies: fzf, snapper (or timeshift/btrfs)
-# Author: System Administrator
 # License: GPL3
 
-set -euo pipefail
+set -uo pipefail
 
 # ═══════════════════════════════════════════════════════════════════════════
 # CONFIGURATION & COLORS
@@ -240,15 +246,7 @@ restore_snapshot() {
 # Compare snapshots
 compare_snapshots() {
     local snap_num="$1"
-    clear
-    
-    echo -e "${C_BOLD}${C_CYAN}═══ COMPARE SNAPSHOT ═══${C_RESET}\n"
-    echo -e "${C_YELLOW}Comparing snapshot #${snap_num} with current system...${C_RESET}\n"
-    
-    $SUDO_CMD snapper status "${snap_num}..0" 2>/dev/null | head -50
-    
-    echo -e "\n${C_DIM}Showing first 50 changes. Press any key to continue...${C_RESET}"
-    read -rsn1
+    $SUDO_CMD snapper status "${snap_num}..0" 2>/dev/null | ${PAGER:-less}
 }
 
 # Show snapshot details
@@ -271,8 +269,11 @@ modify_snapshot() {
     echo -e "${C_BOLD}${C_CYAN}═══ MODIFY SNAPSHOT ═══${C_RESET}\n"
     get_snapshot_preview "$snap_num"
     
-    echo -e "\n${C_YELLOW}Enter new description:${C_RESET}"
-    read -r new_description
+    local current_desc
+    current_desc=$($SUDO_CMD snapper list 2>/dev/null | grep -E "^[[:space:]]*${snap_num}[[:space:]]*│" | awk -F'│' '{print $7}' | xargs)
+    
+    echo -e "\n${C_YELLOW}Edit description (arrow keys supported):${C_RESET}"
+    read -re -i "$current_desc" new_description
     
     if [ -z "$new_description" ]; then
         show_error "Description cannot be empty"
@@ -292,23 +293,94 @@ modify_snapshot() {
 # ACTION MENU
 # ═══════════════════════════════════════════════════════════════════════════
 
+# Timeline options menu (merged with limits)
+show_timeline_menu() {
+    while true; do
+        local config enabled
+        config=$($SUDO_CMD snapper get-config 2>/dev/null)
+        enabled=$(echo "$config" | grep -i 'TIMELINE_CREATE' | awk '{print $NF}')
+        get_val() { echo "$config" | grep -i "TIMELINE_LIMIT_${1}" | awk '{print $NF}'; }
+
+        local menu status_line
+        if [ "$enabled" = "yes" ]; then
+            status_line="Timeline: ENABLED"
+            menu=$(printf "Daily     <d>  %s\nWeekly    <e>  %s\nMonthly   <m>  %s\nYearly    <y>  %s\n⏹  Disable Timeline Snapshots\n⬅️  Back to List" \
+                "$(get_val DAILY)" "$(get_val WEEKLY)" "$(get_val MONTHLY)" "$(get_val YEARLY)")
+        else
+            status_line="Timeline: DISABLED"
+            menu=$(printf "⏱  Enable Timeline Snapshots\n⬅️  Back to List")
+        fi
+
+        local sel
+        sel=$(echo "$menu" | \
+            fzf --ansi \
+                --reverse \
+                --height=100% \
+                --border=rounded \
+                --prompt="Timeline > " \
+                --header="$(echo -e "${C_CYAN}${C_BOLD}Timeline Snapshot Settings  [${status_line}]${C_RESET}")" \
+                --color="header:cyan:bold,prompt:yellow:bold,pointer:magenta:bold" \
+                --pointer="▶" \
+                --no-info) || true
+        [ -z "$sel" ] && return
+
+        case "$sel" in
+            *"Enable"*)
+                $SUDO_CMD snapper set-config TIMELINE_CREATE=yes 2>/dev/null
+                ;;
+            *"Disable"*)
+                if confirm_action "Disable timeline snapshots?"; then
+                    $SUDO_CMD snapper set-config TIMELINE_CREATE=no 2>/dev/null
+                fi
+                ;;
+            Daily*)
+                local cur; cur=$(get_val DAILY)
+                echo -e "${C_YELLOW}Daily limit (current: ${cur}):${C_RESET}"
+                read -re -i "$cur" val
+                [ -n "$val" ] && [ "$val" != "$cur" ] && $SUDO_CMD snapper set-config "TIMELINE_LIMIT_DAILY=${val}" 2>/dev/null
+                ;;
+            Weekly*)
+                local cur; cur=$(get_val WEEKLY)
+                echo -e "${C_YELLOW}Weekly limit (current: ${cur}):${C_RESET}"
+                read -re -i "$cur" val
+                [ -n "$val" ] && [ "$val" != "$cur" ] && $SUDO_CMD snapper set-config "TIMELINE_LIMIT_WEEKLY=${val}" 2>/dev/null
+                ;;
+            Monthly*)
+                local cur; cur=$(get_val MONTHLY)
+                echo -e "${C_YELLOW}Monthly limit (current: ${cur}):${C_RESET}"
+                read -re -i "$cur" val
+                [ -n "$val" ] && [ "$val" != "$cur" ] && $SUDO_CMD snapper set-config "TIMELINE_LIMIT_MONTHLY=${val}" 2>/dev/null
+                ;;
+            Yearly*)
+                local cur; cur=$(get_val YEARLY)
+                echo -e "${C_YELLOW}Yearly limit (current: ${cur}):${C_RESET}"
+                read -re -i "$cur" val
+                [ -n "$val" ] && [ "$val" != "$cur" ] && $SUDO_CMD snapper set-config "TIMELINE_LIMIT_YEARLY=${val}" 2>/dev/null
+                ;;
+            *"Back"*)
+                return
+                ;;
+        esac
+    done
+}
+
 # Show action menu for selected snapshot
 show_action_menu() {
     local snap_num="$1"
     
     while true; do
-        local action=$(echo -e "📋 View Details\n🔍 Compare with Current\n✏️  Modify Description\n♻️  Restore from Snapshot\n🗑️  Delete Snapshot\n⬅️  Back to List" | \
+        local action
+        action=$(echo -e "📋 View Details\n🔍 Compare with Current\n✏️  Modify Description\n♻️  Restore from Snapshot\n🗑️  Delete Snapshot\n⬅️  Back to List" | \
             fzf --ansi \
                 --reverse \
-                --height=20 \
+                --height=100% \
                 --border=rounded \
                 --prompt="Select Action for Snapshot #${snap_num} > " \
                 --header="$(echo -e "${C_CYAN}${C_BOLD}System Snapshot Manager - Actions${C_RESET}")" \
                 --color="header:cyan:bold,prompt:yellow:bold,pointer:magenta:bold" \
                 --pointer="▶" \
-                --no-info)
+                --no-info) || true
         
-        # Exit if ESC pressed or no selection
         [ -z "$action" ] && return
         
         case "$action" in
@@ -326,7 +398,7 @@ show_action_menu() {
                 ;;
             *"Delete"*)
                 delete_snapshot "$snap_num"
-                return  # Return to main list after delete
+                return
                 ;;
             *"Back"*)
                 return
@@ -351,19 +423,21 @@ main() {
     # Main loop - show snapshot list
     while true; do
         # Get snapshot list and show in fzf with preview
-        local selection=$(format_snapshot_list | \
+        local selection
+        selection=$(format_snapshot_list | \
             fzf --ansi \
                 --reverse \
                 --height=100% \
                 --border=rounded \
                 --prompt="Select Snapshot (ESC to exit) > " \
-                --header="$(echo -e "${C_CYAN}${C_BOLD}System Snapshot Manager v${VERSION}${C_RESET}\n${C_DIM}Use ↑↓ to navigate | Enter to select | ESC to exit | Ctrl+N for new snapshot${C_RESET}")" \
+                --header="$(echo -e "${C_CYAN}${C_BOLD}System Snapshot Manager v${VERSION}${C_RESET}\n${C_DIM}Use ↑↓ to navigate | Enter to select | ESC to exit | Ctrl+N new | Ctrl+O timeline${C_RESET}")" \
                 --preview="${SCRIPT_PATH} --preview {1}" \
                 --preview-window=right:45%:wrap:border-left \
                 --color="header:cyan:bold,prompt:yellow:bold,pointer:magenta:bold,preview-bg:0" \
                 --pointer="▶" \
                 --bind="ctrl-n:execute(${SCRIPT_PATH} --create)+reload(${SCRIPT_PATH} --list)" \
-                --expect=ctrl-c)
+                --bind="ctrl-o:execute(${SCRIPT_PATH} --timeline)+reload(${SCRIPT_PATH} --list)" \
+                --expect=ctrl-c) || true
         
         # Exit if ESC pressed (empty selection)
         [ -z "$selection" ] && break
@@ -402,6 +476,10 @@ case "${1:-}" in
         ;;
     --create)
         create_snapshot
+        exit 0
+        ;;
+    --timeline)
+        show_timeline_menu
         exit 0
         ;;
 esac
