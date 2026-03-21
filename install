@@ -29,7 +29,7 @@ yay -S --needed - < aur-pkgs.list
 
 echo "⚙️ Running post-install scripts..."
 for script in post-install-scripts/*; do
-    [ -x "$script" ] && "$script"
+    [ -x "$script" ] && "$script" || echo -e "\e[33m⚠ Script failed: $script\e[0m"
 done
 
 echo "📁 Installing dotfiles..."

@@ -43,8 +43,20 @@ notes.txt
 .local/bin/mycalendar
 .local/bin/soundmixer
 .local/bin/waybar-drives
-.local/bin/weather
 .local/bin/languages
 .local/bin/snapshots
 .local/bin/system-monitor
 .local/bin/weather-terminal
+.config/hypr/wallpapers.conf
+.config/hypr/conf.d
+.config/hypr/hypridle.conf
+.config/hypr/hyprland.conf
+.config/hypr/hyprlock.conf
+.config/hypr/monitors.conf
+.config/hypr/workspaces.conf
+.config/hypr/conf.d/01 variables.conf
+.config/hypr/conf.d/20 autostart.conf
+.config/hypr/conf.d/30 input.conf
+.config/hypr/conf.d/40 look.conf
+.config/hypr/conf.d/50 keybindings.conf
+.config/hypr/conf.d/60 windows.conf
