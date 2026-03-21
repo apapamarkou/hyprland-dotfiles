@@ -1,0 +1,29 @@
+#!/bin/bash
+
+# __   __    _   _ _   _ ___  __
+# \ \ / /__ | | | | \ | (_) \/ /
+#  \ V / _ \| | | |  \| | |\  / 
+#   | | (_) | |_| | |\  | |/  \ 
+#   |_|\___/ \___/|_| \_|_/_/\_\
+#
+# Lisence GPL3
+# Homepage: https://github.com/apapamarkou/younix
+# Author: Andrianos Papamarkou
+# Email: papamarkoua@gmail.com
+
+#!/bin/bash
+
+CLASS="Weather"
+
+if pgrep -f "kitty.*--class $CLASS" > /dev/null; then
+    # If running → kill it
+    pkill -f "kitty.*--class $CLASS"
+else
+    # If not running → start it
+    kitty --title "$CLASS" \
+        --class $CLASS \
+        -o remember_window_size=no \
+        -o initial_window_width=180c \
+        -o initial_window_height=40c \
+        weather &
+fi

@@ -47,3 +47,4 @@ notes.txt
 .local/bin/languages
 .local/bin/snapshots
 .local/bin/system-monitor
+.local/bin/weather-terminal
