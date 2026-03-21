@@ -2,30 +2,32 @@
 
 set -e
 
-REPO_URL="$1"
+REPO="apapamarkou/younix"
+BRANCH="main"
 DOTFILES="$HOME/hyprland-dotfiles"
+TMP="$(mktemp -d)"
 
-if [ -z "$REPO_URL" ]; then
-    echo "Usage: install <repo-url>"
-    exit 1
-fi
+trap 'rm -rf "$TMP"' EXIT
 
-echo "📥 Cloning..."
-git clone "$REPO_URL" "$DOTFILES"
+echo "📥 Downloading..."
+curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$TMP"
+SRC="$TMP/$(ls "$TMP")"
+
+echo "📁 Installing to $DOTFILES..."
+[ -e "$DOTFILES" ] && { echo "❌ $DOTFILES already exists. Remove it first."; exit 1; }
+cp -a "$SRC" "$DOTFILES"
 
 cd "$DOTFILES"
 
 # install yay
 if ! command -v yay &>/dev/null; then
     echo "⚙️ Installing yay..."
-    sudo pacman -S --needed git base-devel
-
-    git clone https://aur.archlinux.org/yay.git /tmp/yay
-    cd /tmp/yay
+    sudo pacman -S --needed --noconfirm git base-devel
+    git clone https://aur.archlinux.org/yay.git "$TMP/yay"
+    cd "$TMP/yay"
     makepkg -si --noconfirm
+    cd "$DOTFILES"
 fi
-
-cd "$DOTFILES"
 
 echo "📦 Installing repo packages..."
 sudo pacman -S --needed - < repo-pkgs.list
@@ -39,7 +41,6 @@ for script in post-install-scripts/*; do
 done
 
 echo "📁 Installing dotfiles..."
-
 while read -r rel; do
     [ -z "$rel" ] && continue
 
@@ -62,10 +63,9 @@ while read -r rel; do
     echo -e "\e[32m✔ Installed $rel\e[0m"
 done < "$DOTFILES/dotfile-paths"
 
-echo -e "\n\n📁 Installing YoUNiX utils...\n"
+echo -e "\n\n📦 Installing YoUNiX utils...\n"
 
-
-wget -qO /tmp/install.sh https://raw.githubusercontent.com/apapamarkou/appimage-integrator/main/install; bash /tmp/install.sh
+curl -fsSL https://raw.githubusercontent.com/apapamarkou/appimage-integrator/main/install | bash
 curl -fsSL https://raw.githubusercontent.com/apapamarkou/lazy-pacman/main/install | bash
 curl -sSL https://raw.githubusercontent.com/apapamarkou/lazy-weather/main/install | bash
 curl -sSL https://raw.githubusercontent.com/apapamarkou/lazy-snapper/main/install | bash
