@@ -1,3 +1,5 @@
+alsa-tools
+alsa-utils
 base
 base-devel
 bash-language-server
@@ -9,16 +11,13 @@ calcurse
 cava
 chafa
 chromium
-code
 cups
 cups-pk-helper
 dex
 dua-cli
-dunst
 fd
 ffmpegthumbnailer
 figlet
-fuzzel
 fzf
 git
 git-zsh-completion
@@ -62,9 +61,11 @@ nodejs
 noto-fonts-emoji
 npm
 nsxiv
+numlockx
 nwg-displays
 nwg-look
 pacman-contrib
+pavucontrol
 pipewire
 pipewire-alsa
 pipewire-jack
@@ -86,6 +87,7 @@ qpwgraph
 qt5-wayland
 qt6-wayland
 ranger
+rsync
 ruby
 rust
 shellcheck

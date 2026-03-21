@@ -256,7 +256,7 @@
 		  "exec": "weather -m",
 		  "format": "{}",
 		  "interval": 3600,
-		  "on-click": "weather -t",
+		  "on-click": "weather-terminal",
 		  "tooltip": true,
 		  "tooltip-format": "\n    left click: weather viewer \n"
     },

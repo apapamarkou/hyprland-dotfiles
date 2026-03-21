@@ -7,16 +7,5 @@ dotfiles remote add origin git@github.com:apapamarkou/df.git
 dotfiles push -u origin main
 
 
-ranger
-----------------------------------
-aa = add to dotfiles
-rr = remove from dotfiles
 
-nnn
-----------------------------------
-;d = add to dotfiles
-;r = remove from dotfiles
-
-nvim
----------
 
