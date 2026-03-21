@@ -62,4 +62,12 @@ while read -r rel; do
     echo -e "\e[32m✔ Installed $rel\e[0m"
 done < "$DOTFILES/dotfile-paths"
 
+echo -e "\n\n📁 Installing YoUNiX utils...\n"
+
+
+wget -qO /tmp/install.sh https://raw.githubusercontent.com/apapamarkou/appimage-integrator/main/install; bash /tmp/install.sh
+curl -fsSL https://raw.githubusercontent.com/apapamarkou/lazy-pacman/main/install | bash
+curl -sSL https://raw.githubusercontent.com/apapamarkou/lazy-weather/main/install | bash
+curl -sSL https://raw.githubusercontent.com/apapamarkou/lazy-snapper/main/install | bash
+
 echo "✅ Done!"
