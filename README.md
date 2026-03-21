@@ -26,18 +26,19 @@ A complete Hyprland desktop environment setup for Arch Linux.
 
 ## Installation
 
-> **Important:** `~/hyprland-dotfiles` must not exist before running. The installer creates it automatically.
+> **Important:** The repo must be cloned into `$HOME` before running the installer.
 
-Run the installer directly from GitHub:
+Clone the repo and run the installer:
 
 ```bash
-bash <(curl -fsSL https://raw.githubusercontent.com/apapamarkou/younix/main/install)
+cd ~
+git clone https://github.com/apapamarkou/younix.git hyprland-dotfiles
+hyprland-dotfiles/install
 ```
 
 ### What the installer does
 
-1. Clones the repo to `~/hyprland-dotfiles`
-2. Installs `yay` (AUR helper) if not present
+1. Installs `yay` (AUR helper) if not present
 3. Installs all packages from `repo-pkgs.list` via pacman
 4. Installs all AUR packages from `aur-pkgs.list` via yay
 5. Runs all executable scripts in `post-install-scripts/` in order

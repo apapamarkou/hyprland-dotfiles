@@ -2,16 +2,12 @@
 
 set -e
 
-REPO="https://github.com/apapamarkou/younix.git"
 DOTFILES="$HOME/hyprland-dotfiles"
 TMP="$(mktemp -d)"
 
 trap 'rm -rf "$TMP"' EXIT
 
-[ -e "$DOTFILES" ] && { echo "❌ $DOTFILES already exists. Remove it first."; exit 1; }
-
-echo "📥 Cloning..."
-git clone "$REPO" "$DOTFILES"
+[ ! -d "$DOTFILES" ] && { echo "❌ $DOTFILES not found. Clone the repo to $HOME first."; exit 1; }
 
 cd "$DOTFILES"
 
