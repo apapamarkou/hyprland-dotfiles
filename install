@@ -2,20 +2,16 @@
 
 set -e
 
-REPO="apapamarkou/younix"
-BRANCH="main"
+REPO="https://github.com/apapamarkou/younix.git"
 DOTFILES="$HOME/hyprland-dotfiles"
 TMP="$(mktemp -d)"
 
 trap 'rm -rf "$TMP"' EXIT
 
-echo "📥 Downloading..."
-curl -fsSL "https://github.com/$REPO/archive/refs/heads/$BRANCH.tar.gz" | tar -xz -C "$TMP"
-SRC="$TMP/$(ls "$TMP")"
-
-echo "📁 Installing to $DOTFILES..."
 [ -e "$DOTFILES" ] && { echo "❌ $DOTFILES already exists. Remove it first."; exit 1; }
-cp -a "$SRC" "$DOTFILES"
+
+echo "📥 Cloning..."
+git clone "$REPO" "$DOTFILES"
 
 cd "$DOTFILES"
 

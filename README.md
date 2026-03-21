@@ -36,7 +36,7 @@ bash <(curl -fsSL https://raw.githubusercontent.com/apapamarkou/younix/main/inst
 
 ### What the installer does
 
-1. Downloads the repo as a tarball to `/tmp` and copies it to `~/hyprland-dotfiles`
+1. Clones the repo to `~/hyprland-dotfiles`
 2. Installs `yay` (AUR helper) if not present
 3. Installs all packages from `repo-pkgs.list` via pacman
 4. Installs all AUR packages from `aur-pkgs.list` via yay
